@@ -1,0 +1,56 @@
+* To Folder.open() or not to Folder.open()
+    
+    After long discussions and several patches from Allen Petersen (allen@suberic.net)
+    I finally figured out the following simple rule:
+    If you want notifications after appendMessages() while getUnreadMessageCount() etc.
+    open() the Folder.
+    If you just want to do deliveries do the following:
+        Folder folder = Store.getFolder(...);
+        folder.appendMessages(...);
+    or stat new messages:
+        Folder folder = Store.getFolder(...);
+        folder.getNewMessageCount();
+    
+
+* Sort order
+    
+    Sort order is definitely oldest-to-newest as in suns IMAPFolder implementation.
+    so after this code:
+        Message m[] = mymaildir.getMessages();
+        Date d0 = m[0].getReceivedDate();
+        Date d1 = m[1].getReceivedDate();
+    d0 must be less or equal to d1;
+
+
+* Quota
+    
+    By default there is no quota. If you want to turn on quota add the following property to your
+    session properties:
+        Properties props = new Properties();
+        props.put(...);
+        props.put("mail.store.maildir.autocreatedir", "true");
+        props.put("mail.store.maildir.quota.size", "10000000");
+        Session session = Session.getDefaultInstance(props);
+        Store store = session.getStore("maildir:/....");
+    Now your store object will check quota during Folder.appendMessages() and throw QuotaExceededException
+    in case quota (10MB in this case) is exceeded.
+    There is another property "mail.store.maildir.quota.count" that is supposed to limit the
+    number of messages in the folder, but it is currently not implemented. If anyone is willing to 
+    do it - you are really welcome.
+
+    Another useful property is "mail.store.maildir.checkmessagesizebeforeappend" 
+    (ok i know the name is too long any name-improving suggestion are welcome).
+    Message objects have a getSize() method which returns size of content in bytes. 
+    But as javamail javadoc states "The size is appropriate for display in a user interface 
+    to give the user a rough idea of the size of this part." 
+    It may not reflect the real size of the whole message, so if you care about this difference 
+    or message types that you're going to deliver do not implement getSize() properly 
+    do not set mail.store.maildir.checkmessagesizebeforeappend to true
+    otherwise it is really valueable if you deliver to often overquoted stores.
+
+
+* MaildirFilename
+
+    From now (javamaildir-0.4pre8) on if filename can not be properly parsed 
+    new MaildirFilename is generated if constructed from File object 
+    lastModified() is considered to be delivery date of this MaildirFilename

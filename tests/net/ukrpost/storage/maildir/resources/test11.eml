@@ -1,0 +1,63 @@
+Return-Path: <devel-admin@altlinux.ru>
+Delivered-To: alexzhukov@ukrpost.net
+Received: (qmail 14991 invoked from network); 29 Apr 2002 08:43:28 -0000
+Received: from unknown (HELO master.altlinux.ru) ([62.118.250.235]) (envelope-sender <devel-admin@altlinux.ru>)
+          by 0 (qmail-ldap-1.03) with SMTP
+          for <alexzhukov@ukrpost.net>; 29 Apr 2002 08:43:28 -0000
+Received: from lrn.ru (linux.ru.net [62.118.250.6])
+	by master.altlinux.ru (Postfix) with ESMTP
+	id B68B4E31DF; Mon, 29 Apr 2002 12:45:44 +0400 (MSD)
+Received: from lrn.ru (localhost.localdomain [127.0.0.1])
+	by lrn.ru (Postfix) with ESMTP
+	id 31575FB3F; Mon, 29 Apr 2002 12:47:12 +0400 (MSD)
+Delivered-To: devel@lrn.ru
+Received: from master.altlinux.ru (master.altlinux.ru [62.118.250.235])
+	by lrn.ru (Postfix) with ESMTP id 63D47F15B
+	for <devel@lrn.ru>; Mon, 29 Apr 2002 12:46:04 +0400 (MSD)
+Received: from altair.office.altlinux.ru (altair.office.altlinux.ru [194.67.87.171])
+	by master.altlinux.ru (Postfix) with ESMTP id 6A79FE31DF
+	for <devel@altlinux.ru>; Mon, 29 Apr 2002 12:44:36 +0400 (MSD)
+Received: from altlinux.ru (novdv.office.altlinux.ru [194.67.87.163])
+	by altair.office.altlinux.ru (Postfix) with ESMTP id CCE2C4CB
+	for <devel@altlinux.ru>; Mon, 29 Apr 2002 12:47:25 +0400 (MSD)
+Message-ID: <3CCD0CF5.4331F6B1@altlinux.ru>
+From: Aleksey Novodvorsky <aen@altlinux.ru>
+Organization: ALTLinux
+X-Mailer: Mozilla 4.78 [ru] (X11; U; Linux 2.2.21-alt2.p3-up i686)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: devel@altlinux.ru
+Subject: Re: [devel] Boxes for authors
+References: <3CCACC54.C102FA2D@altlinux.ru> <3CCD0117.7070101@altlinux.ru>
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: 8bit
+Sender: devel-admin@altlinux.ru
+Errors-To: devel-admin@altlinux.ru
+X-BeenThere: devel@altlinux.ru
+X-Mailman-Version: 2.0.9
+Precedence: bulk
+Reply-To: devel@altlinux.ru
+List-Unsubscribe: <http://altlinux.ru/mailman/listinfo/devel>,
+	<mailto:devel-request@altlinux.ru?subject=unsubscribe>
+List-Id: <devel.altlinux.ru>
+List-Post: <mailto:devel@altlinux.ru>
+List-Help: <mailto:devel-request@altlinux.ru?subject=help>
+List-Subscribe: <http://altlinux.ru/mailman/listinfo/devel>,
+	<mailto:devel-request@altlinux.ru?subject=subscribe>
+List-Archive: <http://altlinux.ru/pipermail/devel/>
+Date: Mon, 29 Apr 2002 13:05:57 +0400
+
+DH wrote:
+
+> А до скольки вы в офисе?
+
+Приходите до 22.
+
+Rgrds, Алексей
+
+>
+
+_______________________________________________
+Devel mailing list
+Devel@altlinux.ru
+http://altlinux.ru/mailman/listinfo/devel

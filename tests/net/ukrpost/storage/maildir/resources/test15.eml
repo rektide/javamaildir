@@ -1,0 +1,460 @@
+Return-Path: <james-dev-return-2631-alexzhukov=ukrpost.net@jakarta.apache.org>
+Delivered-To: alexzhukov@ukrpost.net
+Received: (qmail 8869 invoked from network); 29 Apr 2002 10:17:56 -0000
+Received: from unknown (HELO nagoya.betaversion.org) ([192.18.49.131]) (envelope-sender <james-dev-return-2631-alexzhukov=ukrpost.net@jakarta.apache.org>)
+          by 0 (qmail-ldap-1.03) with SMTP
+          for <alexzhukov@ukrpost.net>; 29 Apr 2002 10:17:56 -0000
+Received: (qmail 27003 invoked by uid 97); 29 Apr 2002 10:20:15 -0000
+Mailing-List: contact james-dev-help@jakarta.apache.org; run by ezmlm
+Precedence: bulk
+List-Unsubscribe: <mailto:james-dev-unsubscribe@jakarta.apache.org>
+List-Subscribe: <mailto:james-dev-subscribe@jakarta.apache.org>
+List-Help: <mailto:james-dev-help@jakarta.apache.org>
+List-Post: <mailto:james-dev@jakarta.apache.org>
+List-Id: "James Developers List" <james-dev.jakarta.apache.org>
+Reply-To: "James Developers List" <james-dev@jakarta.apache.org>
+Delivered-To: mailing list james-dev@jakarta.apache.org
+Received: (qmail 26992 invoked from network); 29 Apr 2002 10:20:14 -0000
+Message-ID: <3CCD1E2D.86456E45@codon.demon.co.uk>
+Date: Mon, 29 Apr 2002 11:19:26 +0100
+From: Dave Morris <dave.morris@codon.demon.co.uk>
+Reply-To: dave.morris@codon.demon.co.uk
+X-Mailer: Mozilla 4.75 [en] (WinNT; U)
+X-Accept-Language: en
+MIME-Version: 1.0
+To: James Developers List <james-dev@jakarta.apache.org>,
+ 	Jeff Keyser <JKeyser@telocity.com>
+Subject: Re: [Fwd: Re: Mailet API]
+References: <000901c1ef19$68aa32d0$1200a8c0@dsl6419231101.telocity.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-MDaemon-Deliver-To: james-dev@jakarta.apache.org
+X-Return-Path: dave.morris@codon.demon.co.uk
+X-Spam-Rating: daedalus.apache.org 1.6.2 0/1000/N
+
+Jeff,
+
+> It would probably be helpful for the Mailet to explicitly know which mailing
+list it is processing for.
+> It may also be helpful to know which command was matched, but that's getting
+even more complicated.
+
+This is the kind of thing I as trying to do.
+With the minimum changes to the current API, which is why I came up with the
+idea of allowing the Mailet to create the Matcher.
+
+In the example you describe.
+The list name could be moved into the Mailet configuration rather than the
+Matcher configuration.
+
+    <mailet class="AvalonListservManager">
+        <listName>james-list@domian.com</listName>
+        <repositoryName>james-list</repositoryName>
+    </mailet>
+
+The Mailet gets the list name by reading the configuration when it is
+initialised.
+The Mailet then creates the Matcher, passing it the same list name.
+
+    /**
+     * Our Matcher.
+     *
+     */
+    private Matcher matcher ;
+
+    /**
+     * Initialise our Matcher, using the list name from our config.
+     *
+     */
+    protected void initMatcher()
+        throws MessagingException
+        {
+//
+// Create our Matcher.
+//
+        matcher = new CommandForListserv() ;
+        MatcherConfigImpl config = new MatcherConfigImpl();
+//
+// Set the Matcher list name.
+//
+        config.setCondition(myListname);
+        config.setMailetContext(getMailetContext());
+        matcher.init(config);
+        }
+
+    /**
+     * Get our Matcher, creating a new one if required.
+     *
+     */
+    public Matcher getMatcher()
+        {
+        if (null == matcher)
+            {
+            initMatcher() ;
+            }
+        return matcher ;
+        }
+
+So, both the Mailet and the Matcher get the same list name, set once in the
+Mailet configuration.
+
+If you want to add additional communication between the Matcher and Mailet.
+To be able to change the list name for example (not a very practical example,
+but just suppose).
+
+You could extend the Matcher class, to add setListName() and getListName()
+methods.
+
+    class XCommandForListserv
+        extends CommandForListserv
+        {
+        public void setListName(String name) { .... } ;
+        public String getListName() { .... } ;
+        }
+
+The Mailet could then create an XCommandForListserv, and have access to the new
+methods.
+Internally, the Mailet has a reference to the extended class, but externally it
+is still a generic Matcher.
+
+    /**
+     * Our extended Matcher.
+     *
+     */
+    private XCommandForListserv matcher ;
+
+    /**
+     * Initialise our Matcher, using the list name from our config.
+     *
+     */
+    protected void initMatcher()
+        throws MessagingException
+        {
+//
+// Create our extended Matcher.
+//
+        matcher = new XCommandForListserv() ;
+        MatcherConfigImpl config = new MatcherConfigImpl();
+//
+// Set the Matcher list name.
+//
+        config.setCondition(myListname);
+        config.setMailetContext(getMailetContext());
+        matcher.init(config);
+        }
+
+    /**
+     * Get our Matcher, creating a new one if required.
+     *
+     */
+    public Matcher getMatcher()
+        {
+        if (null == matcher)
+            {
+            initMatcher() ;
+            }
+        return matcher ;
+        }
+
+    /**
+     * Change the list name for no obvious reason.
+     *
+     */
+    public void sillyExample(String name)
+        {
+        if (null != matcher)
+            {
+            matcher.setListName(name) ;
+            }
+        }
+
+Would this enable you to do what you wanted ?
+Hopefully, without too many side effects on the rest of the Mailet / Matcher
+code already in place.
+
+In theory, it would be possible to extend XCommandForListserv to enable the
+Mailet to ask the Matcher what command was matched.
+However, it would probably need to be thread safe and sync .... possible, but a
+bit more complicated.
+
+Hope this helps,
+Dave
+
+
+Jeff Keyser wrote:
+
+> I agree that the work of matching and doing something should be separate.
+> However, I'd like to suggest an alternative way of communicating, since it
+> may be helpful for a Mailet to know what parameters were user by the
+> Matcher.
+>
+> I'm thinking specifically about the CommandForListserv Matcher and the
+> AvalonListservManager Mailet.  It would probably be helpful for the Mailet
+> to explicitly know which mailing list it is processing for.  It may also be
+> helpful to know which command was matched, but that's getting even more
+> complicated.
+>
+> How to do this?  I'm not sure, but if it can be done cleanly, I see it being
+> useful.
+>
+> > -----Original Message-----
+> > From: Andrew Timberlake [mailto:andrew@ddd.co.za]
+> > Sent: Monday, April 22, 2002 12:00 PM
+> > To: james-dev@jakarta.apache.org
+> > Subject: [Fwd: Re: Mailet API]
+> >
+> >
+> > Thanks Dave for the response
+> > I'm forwarding this thread back into the list as I would like to hear
+> > the main developers, and others, feedback and insight into this.
+> >
+> > Thanks
+> >
+> > Andrew
+> >
+> > -----Forwarded Message-----
+> >
+> > From: Dave Morris <dave.morris@codon.demon.co.uk>
+> > To: Andrew Timberlake <andrew@ddd.co.za>
+> > Subject: Re: Mailet API
+> > Date: 22 Apr 2002 16:19:22 +0100
+> >
+> > Yep.
+> > Quite true.
+> > However, kind of makes the Matcher redundant if all the
+> > Mailets start doing their
+> > own matching.
+> >
+> > I kind of like the separation of functionality, a Matcher
+> > filters the messages
+> > and a Mailet does stuff with the messages. What I want to add
+> > is a way of the
+> > Mailet an Matcher to talk to each other, mainly to share configuration
+> > information.
+> >
+> > This came up when I was experimenting with designing some of
+> > my own custom
+> > Mailets.
+> > In each case, the Mailet needed to process emails to one or
+> > more addresses in a
+> > list or group.
+> > Both the Mailet and Matcher needed to be configured to access
+> > the same list of
+> > addresses.
+> >
+> > I kept ending up with an odd situation where both the Mailet
+> > and Matcher share
+> > the same list of addresses, but they can't communicate
+> > directly with each other.
+> >
+> > Much like the current RecipientIsLocal Matcher and
+> > LocalDeliver Mailet, both have
+> > to use an Avalon lookup to get a reference to the local
+> > reporistory, but they
+> > can't talk to each other.
+> >
+> > You are right, it is possible to implement using the current
+> > API, just a few
+> > extra hoops to jump through.
+> > The proposed change would just make it a little easier to
+> > design Matcher and
+> > Mailet combinations.
+> > If it causes too many side effects, then it isn't worth it.
+> >
+> > Thanks,
+> > Dave
+> >
+> >
+> > Andrew Timberlake wrote:
+> >
+> > > Just a quick question.
+> > > A mailet can perform the function of a matcher just by virtue of
+> > > checking the mail message as it processes it. Therefore
+> > could you not
+> > > achieve what you are looking for with the match="ALL" and then write
+> > > "matching" information into the mailet?
+> > >
+> > > Andrew
+> > >
+> > > On Mon, 2002-04-22 at 14:21, Dave Morris wrote:
+> > > > Hi,
+> > > >
+> > > > I would like to propose a change to the Mailet API, and would be
+> > > > interested in thoughts and ideas.
+> > > >
+> > > > At the moment, Mailets have no access to their Matcher.
+> > > > I appreciate that this is probably by design.
+> > > > However ..... I would like to suggest adding the
+> > following to the Mailet
+> > > > API.
+> > > >
+> > > >      /**
+> > > >       * Create a Matcher for this Mailet.
+> > > >       * Default is to return null and let the container create the
+> > > > Matcher.
+> > > >       * Advantage is that the Mailet can use it's internal data to
+> > > > generate and configure a suitable Matcher.
+> > > >       * Disadvantage is that the Mailet interface becomes
+> > tied to the
+> > > > Matcher interface.
+> > > >       *
+> > > >       */
+> > > >      public Matcher getMatcher() ;
+> > > >
+> > > > And changing the code which loads the Mailets and Matchers in
+> > > > JamesSpoolManager to this.
+> > > >
+> > > >     Mailet mailet = null;
+> > > >     Matcher matcher = null;
+> > > >     //
+> > > >     // Allow blank 'match' attribute in config XML.
+> > > >     String matcherName = c.getAttribute("match", null);
+> > > >     //
+> > > >     // Load the Mailet.
+> > > >     mailet = loadMailet(mailetClassName, mailetcontext, c) ;
+> > > >     //
+> > > >     // If the config specified a Matcher.
+> > > >     if (null != matcherName)
+> > > >         {
+> > > >         matcher = loadMatcher(matcherName, mailetcontext) ;
+> > > >         }
+> > > >     //
+> > > >     // If not, see if the Mailet has it's own Matcher.
+> > > >     else {
+> > > >         matcher = mailet.getMatcher() ;
+> > > >         }
+> > > >     //
+> > > >     // If we still don't have a Matcher.
+> > > >     if (null == matcher)
+> > > >         {
+> > > >     //
+> > > >     // Two possible options.
+> > > >     // a) Throw an Exception saying "No Matcher specified
+> > for Mailet".
+> > > >     // b) Add a default 'All' Matcher.
+> > > >     // Depends which people think makes more sense ....
+> > > >     //
+> > > >         }
+> > > >
+> > > > This does not break any of the existing Maliets or configuration.
+> > > > All of the existing mailets can implement the new method
+> > and return
+> > > > null, leaving the container to configure the Matcher.
+> > > > All of the exisiting configuration stays the same, any
+> > Matcher specified
+> > > > in the config will override the Matcher generated by a new Mailet.
+> > > >
+> > > > As an example of what this change would gain, consider the local
+> > > > delivery Mailet and Matcher.
+> > > >
+> > > >     <mailet match="RecipientIsLocal" class="LocalDelivery"/>
+> > > >
+> > > > In order to check if the recipient is a local user, the
+> > Matcher needs to
+> > > > access the local repository.
+> > > > In order to store the mail, the Mailet needs to access the local
+> > > > repository.
+> > > >
+> > > > Two separate components, both of which need be configured
+> > to access the
+> > > > local repository.
+> > > >
+> > > > If the LocalDelivery Mailet was able to generate it's own
+> > Matcher, then
+> > > > the configuration could be changed to this.
+> > > >
+> > > >     <mailet class="LocalDelivery"/>
+> > > >
+> > > > In this example, the Mailet would create it's own RecipientIsLocal
+> > > > Matcher.
+> > > > Not much of an advantage as yet.
+> > > > However, the domain for the Mailet could be configurable,
+> > so we could
+> > > > have this.
+> > > >
+> > > >     <mailet class="LocalDelivery">
+> > > >         <domain>mydomain.com</domain>
+> > > >     </mailet>
+> > > >
+> > > >     <mailet class="LocalDelivery">
+> > > >         <domain>myother.com</domain>
+> > > >     </mailet>
+> > > >
+> > > > In each case, the Mailet would generate it's own Matcher,
+> > configured to
+> > > > match recipients for the specified domain.
+> > > > Yes, I know it is possible to implement this example
+> > using the current
+> > > > API.
+> > > >
+> > > >     <mailet match="RecipientIsInDomain=mydomain.com"
+> > > > class="LocalDelivery">
+> > > >         <domain>mydomain.com</domain>
+> > > >     </mailet>
+> > > >
+> > > >     <mailet match="RecipientIsInDomain=myother.com"
+> > > > class="LocalDelivery">
+> > > >         <domain>myother.com</domain>
+> > > >     </mailet>
+> > > >
+> > > > However, providing a link between the Mailet and Matcher
+> > would make it
+> > > > easier to create more complicated Matcher/Mailet
+> > combinations to handle
+> > > > dynamic lists of addresses.
+> > > >
+> > > > Any thoughts ?
+> > > >
+> > > > Thanks,
+> > > > Dave
+> > > >
+> > > >
+> > > >
+> > > >
+> > > > --
+> > > > To unsubscribe, e-mail:
+> > <mailto:james-dev-unsubscribe@jakarta.apache.org>
+> > > > For additional commands, e-mail:
+> > <mailto:james-dev-help@jakarta.apache.org>
+> > > >
+> > > --
+> > > Andrew Timberlake
+> > > Digital Design Development
+> > > http://www.ddd.co.za
+> > > mailto:andrew@ddd.co.za
+> > > 011 705 1737
+> > > 082 415 8283
+> > >
+> > > "If debugging is the process of removing bugs,
+> > > then programming must be the process of putting them in."
+> >
+> >
+> > --
+> > Andrew Timberlake
+> > Digital Design Development
+> > http://www.ddd.co.za
+> > mailto:andrew@ddd.co.za
+> > 011 705 1737
+> > 082 415 8283
+> >
+> > "If debugging is the process of removing bugs,
+> > then programming must be the process of putting them in."
+> >
+> >
+> > --
+> > To unsubscribe, e-mail:
+> > <mailto:james-dev-unsubscribe@jakarta.apache.org>
+> > For additional commands, e-mail:
+> > <mailto:james-dev-help@jakarta.apache.org>
+> >
+>
+> --
+> To unsubscribe, e-mail:   <mailto:james-dev-unsubscribe@jakarta.apache.org>
+> For additional commands, e-mail: <mailto:james-dev-help@jakarta.apache.org>
+
+
+
+--
+To unsubscribe, e-mail:   <mailto:james-dev-unsubscribe@jakarta.apache.org>
+For additional commands, e-mail: <mailto:james-dev-help@jakarta.apache.org>
+

@@ -1,0 +1,1 @@
+protocol=maildir; type=store; class=net.ukrpost.storage.maildir.MaildirStore; vendor=Priocom Corp.;

@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Implementation-Version: 0.1
+Specification-Title: net.ukrpost.storage.maildir
+Specification-Version: 1.3
+Implementation-Title: net.ukrpost.storage.maildir
+Extension-Name: net.ukrpost.storage.maildir
+Created-By: Alexander Zhukov (Priocom Corp.)
+Implementation-Vendor-Id: com.priocom
+Implementation-Vendor: Priocom Corp.
+Specification-Vendor: Priocom Corp.

@@ -1,0 +1,42 @@
+The JavaMaildir Project
+
+   JavaMaildir is a JavaMail service provider. It provides an access method
+   to qmail-style Maildir folders extended to support courier-imap Maildir++
+   standard. Maildir++ was slightly modified to overcome rather odd
+   courier-imap's notion of "INBOX." as a root.
+
+     ----------------------------------------------------------------------
+
+   Features:
+     * 100% pure Java
+     * JavaMail compliant
+     * Folders: create, rename, delete, list contents
+     * Messages: read, append(create), delete, move, copy. Full MIME support.
+     * Events: folder created, deleted, renamed; message added, removed, changed
+     * Misc: gracefuly handle external deliveries and message removes
+
+     ----------------------------------------------------------------------
+
+   JavaMaildir uses the following libraries:
+     * Apache-Ant
+     * Apache-Jarkarta-Log4j
+     * Apache-Jarkarta-Commons-Collections
+     * Apache-Jarkarta-Commons-Lang
+
+     ----------------------------------------------------------------------
+
+   Related specifications:
+     * JavaMail
+     * Maildir
+     * Maildir++
+
+     ----------------------------------------------------------------------
+
+   Related projects:
+     * Local Store
+
+     ----------------------------------------------------------------------
+
+   Installation and Usage:
+
+    Installation and usage is straightforward - put javamaildir.jar into you classpath and run examples.
