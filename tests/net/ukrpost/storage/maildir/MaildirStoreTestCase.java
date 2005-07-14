@@ -12,7 +12,6 @@ import java.io.File;
 import java.util.Properties;
 
 public class MaildirStoreTestCase extends TestCase {
-
     static {
         //BasicConfigurator.configure();
         final Properties props = new Properties();
@@ -41,12 +40,12 @@ public class MaildirStoreTestCase extends TestCase {
 
     /*public void testGetQuota() throws Exception {
         MaildirStore store = MaildirTestHelper.setupQuotaStore(1000, 10);
-        
+
         Quota q[] = store.getQuota("");
         assertEquals(1, q.length);
         assertEquals(2, q[0].resources.length);
         MaildirTestHelper.QuotaHelper qh = new MaildirTestHelper.QuotaHelper(q);
-        
+
         assertTrue(qh.hasMessageResource);
         assertTrue(qh.hasStorageResource);
 
@@ -72,10 +71,10 @@ public class MaildirStoreTestCase extends TestCase {
         assertTrue(qh.hasStorageResource);
 
         assertEquals(10, qh.messageLimit);
-        
+
         assertEquals(1000, qh.storageLimit);
         assertEquals(14517, qh.storageUsage);
-        
+
         store.close();
     }*/
 
@@ -112,6 +111,10 @@ public class MaildirStoreTestCase extends TestCase {
         helper.doExternalDelivery((MaildirFolder) inbox, 3);
         final Folder inbox2 = store.getFolder("inbox");
         assertTrue(inbox != inbox2);
+    }
+
+    public void testDamageControl() throws Exception {
+        throw new RuntimeException("hello");
     }
 
     protected void tearDown() {
