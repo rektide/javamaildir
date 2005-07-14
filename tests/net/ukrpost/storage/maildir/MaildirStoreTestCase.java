@@ -113,9 +113,7 @@ public class MaildirStoreTestCase extends TestCase {
         final Folder inbox2 = store.getFolder("inbox");
         assertTrue(inbox != inbox2);
     }
-    public void testContinuum() throws Exception {
-        throw new RuntimeException("hello world");
-    }
+
     protected void tearDown() {
         MaildirTestHelper.rmdir(new File("tmp/maildirtest"));
     }
