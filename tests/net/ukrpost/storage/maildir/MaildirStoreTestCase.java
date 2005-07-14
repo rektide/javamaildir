@@ -113,10 +113,6 @@ public class MaildirStoreTestCase extends TestCase {
         assertTrue(inbox != inbox2);
     }
 
-    public void testDamageControl() throws Exception {
-        throw new RuntimeException("hello");
-    }
-
     protected void tearDown() {
         MaildirTestHelper.rmdir(new File("tmp/maildirtest"));
     }
