@@ -116,4 +116,6 @@ public class MaildirStoreTestCase extends TestCase {
     protected void tearDown() {
         MaildirTestHelper.rmdir(new File("tmp/maildirtest"));
     }
+
+    //meaningless
 }
