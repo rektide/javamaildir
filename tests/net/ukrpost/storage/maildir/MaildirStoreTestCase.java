@@ -4,29 +4,16 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.apache.log4j.PropertyConfigurator;
+import org.apache.log4j.Logger;
 
-import javax.mail.Folder;
-import javax.mail.Session;
-import javax.mail.URLName;
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import java.io.File;
 import java.util.Properties;
 
 public class MaildirStoreTestCase extends TestCase {
-    static {
-        //BasicConfigurator.configure();
-        final Properties props = new Properties();
-        props.put("log4j.rootLogger", ", D");
-        props.put("log4j.appender.D", "org.apache.log4j.ConsoleAppender");
-        props.put("log4j.appender.D.layout", "org.apache.log4j.PatternLayout");
-        props.put("log4j.appender.D.layout.ConversionPattern",
-                "[%t] %-5p %c{1} %x - %m%n");
-        props.put("log4j.logger.net.ukrpost.storage", "INFO");
-        PropertyConfigurator.configure(props);
-    }
-
-    public static void main(String args[]) {
-        junit.textui.TestRunner.run(suite());
-    }
+    private final static Logger log = Logger.getLogger(MaildirStoreTestCase.class);
 
     MaildirTestHelper helper = null;
 
@@ -117,5 +104,41 @@ public class MaildirStoreTestCase extends TestCase {
         MaildirTestHelper.rmdir(new File("tmp/maildirtest"));
     }
 
-    //meaningless
+    private final static long KB = 1024;
+    private final static long MB = 1024 * KB;
+
+    public void testQuota() throws Exception {
+        File tmp = new File(System.getProperty("java.io.tmpdir"));
+        File maildir = new File(tmp, "maildirtest");
+
+        MaildirTestHelper.rmdir(maildir);
+        assertTrue(maildir.mkdirs());
+
+        long sizeQuota = 10 * MB;
+        Properties properties = new Properties();
+        properties.setProperty("mail.store.maildir.quota.size", Long.toString(sizeQuota));
+        Session session = Session.getInstance(properties);
+        MaildirStore maildirStore = new MaildirStore(session, new URLName("maildir:" + maildir.getCanonicalPath()));
+        long sizeUsage = maildirStore.getQuota("")[0].getResourceUsage("STORAGE");
+        assertEquals(0, sizeUsage);
+
+        Folder inbox = maildirStore.getFolder("inbox");
+        if (!inbox.exists())
+            inbox.create(Folder.HOLDS_MESSAGES);
+        MimeMessage randomMessage = getRandomMessage();
+        inbox.appendMessages(new Message[]{randomMessage});
+
+        sizeUsage = maildirStore.getQuota("")[0].getResourceUsage("STORAGE");
+        assertTrue(sizeUsage > 0);
+    }
+
+    private final static MimeMessage getRandomMessage() throws MessagingException {
+        MimeMessage m = new MimeMessage((Session) null);
+        m.setSender(new InternetAddress("hello@world"));
+        m.setRecipient(Message.RecipientType.TO, new InternetAddress("out@there"));
+        m.setText("hello world");
+        m.setSubject("hello world");
+        m.saveChanges();
+        return m;
+    }
 }
