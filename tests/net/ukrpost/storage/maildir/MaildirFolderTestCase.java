@@ -96,7 +96,7 @@ public class MaildirFolderTestCase extends TestCase {
         final MimeMessage duplicate = new MimeMessage(mm);
 
         final Message[] messages = new Message[]{
-            mm, duplicate
+                mm, duplicate
         };
 
         f1.appendMessages(messages);
@@ -195,7 +195,6 @@ public class MaildirFolderTestCase extends TestCase {
         listFolder(inbox);
         inbox.open(Folder.READ_ONLY);
 
-
         //get most recent message
         final Message[] allMsgs = inbox.getMessages();
         final Message m = allMsgs[allMsgs.length - 1];
@@ -233,11 +232,10 @@ public class MaildirFolderTestCase extends TestCase {
 
     }
 
-    /*
-     *
-     make sure that messages added while the folder is closed are recorded
-     properly.  they should be recent until the folder is closed.
-    */
+    /**
+     * make sure that messages added while the folder is closed are recorded
+     * properly.  they should be recent until the folder is closed.
+     */
     public void testRecentAfterClose() throws IOException, MessagingException {
         helper.doExternalDelivery(inbox);
         assertEquals(2, inbox.getNewMessageCount());
@@ -246,7 +244,6 @@ public class MaildirFolderTestCase extends TestCase {
         inbox.close(true);
         assertEquals(0, inbox.getNewMessageCount());
     }
-
 
     public void testExpunge() throws IOException, MessagingException {
         helper.doExternalDelivery(inbox, 5);
