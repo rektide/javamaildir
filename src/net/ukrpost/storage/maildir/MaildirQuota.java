@@ -1,5 +1,9 @@
 package net.ukrpost.storage.maildir;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 public final class MaildirQuota {
     public static final class Resource {
         public final String name;
@@ -14,76 +18,43 @@ public final class MaildirQuota {
     }
 
     public final String quotaRoot;
-    public java.util.Vector resources = new java.util.Vector();
+    public final Map resources = Collections.synchronizedMap(new HashMap());
 
     public MaildirQuota(String s) {
         quotaRoot = s;
     }
 
-    public MaildirQuota(MaildirQuota q) {
-        this(q.quotaRoot);
-        resources = q.resources;
+    public long getResourceUsage(String name) {
+        Resource resource = (Resource) resources.get(name);
+        if (resource == null) return 0L;
+        return resource.usage;
     }
-
-    public long getResourceUsage(String s) {
-        if (resources == null)
-            return 0L;
-
-        for (int i = 0; i < resources.size(); i++)
-            if (((Resource) resources.get(i)).name.equalsIgnoreCase(s))
-                return ((Resource) resources.get(i)).usage;
-
-        return 0L;
-    }
-
-    /*public String toString()
-    {
-        StringBuffer out = new StringBuffer();
-        for (int i = 0; i < resources.size(); i++) {
-            out.append("[");
-            out.append(((Resource)resources.get(i)).name);
-            out.append(" (");
-            out.append(((Resource)resources.get(i)).limit);
-            out.append(":");
-            out.append(((Resource)resources.get(i)).usage);
-            out.append(")]");
-        }
-        return out.toString();
-    }*/
 
     public long getResourceLimit(String name) {
-        if (resources == null)
-            return 0L;
-
-        for (int i = 0; i < resources.size(); i++)
-            if (((Resource) resources.get(i)).name.equalsIgnoreCase(name))
-                return ((Resource) resources.get(i)).limit;
-
-        return 0L;
+        Resource resource = (Resource) resources.get(name);
+        if (resource == null) return 0L;
+        return resource.limit;
     }
 
     public void setResourceUsage(String name, long usage) {
-        if (name == null)
-            return;
-
-        for (int i = 0; i < resources.size(); i++)
-            if (((Resource) resources.get(i)).name.equalsIgnoreCase(name)) {
-                ((Resource) resources.get(i)).usage = usage;
-                break;
-            }
-        resources.add(new Resource(name, usage, 0L));
+        Resource resource;
+        if (!resources.containsKey(name)) {
+            resource = new Resource(name, usage, 0L);
+            resources.put(name, resource);
+        } else {
+            resource = (Resource) resources.get(name);
+            resource.usage = usage;
+        }
     }
 
     public void setResourceLimit(String name, long limit) {
-        if (name == null)
-            return;
-
-        for (int i = 0; i < resources.size(); i++)
-            if (((Resource) resources.get(i)).name.equalsIgnoreCase(name)) {
-                ((Resource) resources.get(i)).limit = limit;
-                break;
-            }
-        resources.add(new Resource(name, 0L, limit));
-
+        Resource resource;
+        if (!resources.containsKey(name)) {
+            resource = new Resource(name, 0L, limit);
+            resources.put(name, resource);
+        } else {
+            resource = (Resource) resources.get(name);
+            resource.limit = limit;
+        }
     }
 }
