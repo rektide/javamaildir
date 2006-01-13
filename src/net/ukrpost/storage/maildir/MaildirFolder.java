@@ -148,25 +148,25 @@ public class MaildirFolder extends Folder implements UIDFolder {
      * Updates message maps and counters: recentMessages, deletedMessages, unreadMessages based on flags set in MaildirFilename.
      */
     private MaildirMessage addMessage(MaildirFilename mfn) {
-//        log.debug("adding new message: "+mfn.getUniq());
-        if (!mfn.getFlag(Flags.Flag.SEEN))
+        MaildirMessage mm = null;
+        if (!uniqToMessageMap.containsKey(mfn.getUniq())) {
+            mm = new MaildirMessage(this, mfn.getFile(),
+                    mfn, -1);
+            uniqToMessageMap.put(mfn.getUniq(), mm);
+        } else {
+            mm = (MaildirMessage) uniqToMessageMap.get(mfn.getUniq());
+        }
+
+        if (!mm.isSet(Flags.Flag.SEEN))
             unreadMessages++;
 
-        if (mfn.getFlag(Flags.Flag.DELETED))
+        if (mm.isSet(Flags.Flag.DELETED))
             deletedMessages++;
 
         if (!uids.containsKey(mfn.getUniq()))
             uids.addUid(mfn.getUniq());
 
-        if (!uniqToMessageMap.containsKey(mfn.getUniq())) {
-            final MaildirMessage mm = new MaildirMessage(this, mfn.getFile(),
-                    mfn, -1);
-            uniqToMessageMap.put(mfn.getUniq(), mm);
-            return mm;
-        } else {
-            return (MaildirMessage) uniqToMessageMap.get(mfn.getUniq());
-        }
-
+        return mm;
     }
 
     LastModified updateLm = new LastModified();

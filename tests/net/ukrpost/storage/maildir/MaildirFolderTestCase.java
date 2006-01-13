@@ -4,6 +4,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import net.ukrpost.utils.QuotaExceededException;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -11,6 +12,7 @@ import javax.mail.*;
 import javax.mail.event.MessageCountEvent;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -426,4 +428,37 @@ public class MaildirFolderTestCase extends TestCase {
     //public void testParallelDelivery() throws Exception {
     //}
 
+    public void testMessageCounts() throws Exception {
+        File maildir = new File("maildir");
+        FileUtils.deleteDirectory(maildir);
+        maildir.mkdirs();
+        assertTrue(maildir.exists());
+        File n = new File(maildir, "new");
+        File c = new File(maildir, "cur");
+        File t = new File(maildir, "tmp");
+        n.mkdirs();
+        c.mkdirs();
+        t.mkdirs();
+
+        FileUtils.writeStringToFile(new File(c, "1234.message1.eml"), "From: hello1\nSubject: subject1\n\nworld1\n", "UTF-8");
+        FileUtils.writeStringToFile(new File(c, "5678.message2.eml"), "From: hello2\nSubject: subject2\n\nworld2\n", "UTF-8");
+
+        MaildirStore store = new MaildirStore(Session.getInstance(new Properties()), new URLName("maildir:maildir"));
+        Folder inbox = store.getFolder("INBOX");
+        assertTrue(inbox.exists());
+        inbox.open(Folder.READ_WRITE);
+        assertEquals(2, inbox.getMessageCount());
+        assertEquals(2, inbox.getUnreadMessageCount());
+        inbox.getMessage(1).setFlag(Flags.Flag.SEEN, true);
+        assertEquals(2, inbox.getMessageCount());
+        assertEquals(1, inbox.getUnreadMessageCount());
+
+        Thread.sleep(1000);
+        
+        //external delivery
+        File m3 = new File(n, "3333.deliveredwhilerunning.eml");
+        FileUtils.writeStringToFile(m3, "From: hello3\nSubject: subject3\n\nworld3\n", "UTF-8");
+        assertEquals(3, inbox.getMessageCount());
+        assertEquals(2, inbox.getUnreadMessageCount());
+    }
 }
