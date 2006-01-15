@@ -88,7 +88,7 @@ public class MaildirMessage extends MimeMessage implements Comparable {
             fis = new FileInputStream(getFile());
             parse(fis);
         } catch (FileNotFoundException fnfex) {
-            throw new MessagingException("file not found");
+            throw new MessagingException("file " + getFile() + " not found", fnfex);
         } finally {
             try {
                 if (fis != null)
