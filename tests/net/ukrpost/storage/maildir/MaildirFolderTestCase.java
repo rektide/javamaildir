@@ -15,6 +15,7 @@ import javax.mail.internet.MimeMessage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.util.Properties;
 
 public class MaildirFolderTestCase extends TestCase {
@@ -460,5 +461,35 @@ public class MaildirFolderTestCase extends TestCase {
         FileUtils.writeStringToFile(m3, "From: hello3\nSubject: subject3\n\nworld3\n", "UTF-8");
         assertEquals(3, inbox.getMessageCount());
         assertEquals(2, inbox.getUnreadMessageCount());
+    }
+
+    public void testFileNotFoundAfterDelivery() throws Exception {
+        File maildir = new File("maildir");
+        FileUtils.deleteDirectory(maildir);
+        maildir.mkdirs();
+        assertTrue(maildir.exists());
+        File n = new File(maildir, "new");
+        File c = new File(maildir, "cur");
+        File t = new File(maildir, "tmp");
+        n.mkdirs();
+        c.mkdirs();
+        t.mkdirs();
+
+        FileUtils.writeStringToFile(new File(c, "1234.message1.eml"), "From: hello1\nSubject: subject1\n\nworld1\n", "UTF-8");
+        Thread.sleep(1000);
+
+        FileUtils.writeStringToFile(new File(c, "5678.message2.eml"), "From: hello2\nSubject: subject2\n\nworld2\n", "UTF-8");
+
+        MaildirStore store = new MaildirStore(Session.getInstance(new Properties()), new URLName("maildir:maildir"));
+        Folder inbox = store.getFolder("INBOX");
+        inbox.open(Folder.READ_WRITE);
+        MimeMessage newMessage = new MimeMessage(null, new ByteArrayInputStream("From: hello3\nSubject: subject3\n\nworld3\n".getBytes()));
+        newMessage.setFlag(Flags.Flag.RECENT, true);
+
+        Thread.sleep(1000);
+        inbox.appendMessages(new Message[]{newMessage});
+        assertEquals(3, inbox.getMessageCount());
+        MimeMessage message = (MimeMessage) inbox.getMessage(1);
+        message.getSubject();
     }
 }

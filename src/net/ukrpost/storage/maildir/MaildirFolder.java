@@ -165,7 +165,7 @@ public class MaildirFolder extends Folder implements UIDFolder {
 
         if (!uids.containsKey(mfn.getUniq()))
             uids.addUid(mfn.getUniq());
-
+        mm.setFile(mfn.getFile());
         return mm;
     }
 
