@@ -46,6 +46,15 @@
     <build>
         <nagEmailAddress>zhukov.alex@gmail.com</nagEmailAddress>
         <sourceDirectory>src</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>${basedir}/src</directory>
+                <includes>
+                    <include>META-INF/MANIFEST.MF</include>
+                    <include>META-INF/javamail.providers</include>
+                </includes>
+            </resource>
+        </resources>
         <unitTestSourceDirectory>tests</unitTestSourceDirectory>
         <unitTest>
             <includes>
