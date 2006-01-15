@@ -57,6 +57,14 @@
         </resources>
         <unitTestSourceDirectory>tests</unitTestSourceDirectory>
         <unitTest>
+            <resources>
+                <resource>
+                    <directory>${basedir}/tests</directory>
+                    <includes>
+                        <include>**/*.eml</include>
+                    </includes>
+                </resource>
+            </resources>
             <includes>
                 <include>**/*TestCase.java</include>
             </includes>
