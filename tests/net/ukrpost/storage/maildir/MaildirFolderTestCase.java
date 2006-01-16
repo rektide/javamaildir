@@ -492,4 +492,34 @@ public class MaildirFolderTestCase extends TestCase {
         MimeMessage message = (MimeMessage) inbox.getMessage(1);
         message.getSubject();
     }
+
+    public void testGetMessages() throws Exception {
+        File maildir = new File("maildir");
+        FileUtils.deleteDirectory(maildir);
+        maildir.mkdirs();
+        assertTrue(maildir.exists());
+        File n = new File(maildir, "new");
+        File c = new File(maildir, "cur");
+        File t = new File(maildir, "tmp");
+        n.mkdirs();
+        c.mkdirs();
+        t.mkdirs();
+
+        FileUtils.writeStringToFile(new File(c, "1111.message1.eml"), "From: hello1\nSubject: subject1\n\nworld1\n", "UTF-8");
+        Thread.sleep(1000);
+        FileUtils.writeStringToFile(new File(c, "2222.message2.eml"), "From: hello2\nSubject: subject2\n\nworld2\n", "UTF-8");
+
+        MaildirStore store = new MaildirStore(Session.getInstance(new Properties()), new URLName("maildir:maildir"));
+        Folder inbox = store.getFolder("INBOX");
+        inbox.open(Folder.READ_WRITE);
+        MimeMessage newMessage = new MimeMessage(null, new ByteArrayInputStream("From: hello3\nSubject: subject3\n\nworld3\n".getBytes()));
+        newMessage.setFlag(Flags.Flag.RECENT, true);
+        assertEquals(2, inbox.getMessages().length);
+        Thread.sleep(1000);
+
+        FileUtils.writeStringToFile(new File(c, "3333.message3.eml"), "From: hello3\nSubject: subject3\n\nworld3\n", "UTF-8");
+        //todo: for now update to messages array is only done after call to get*MessageCount(), decide whether this behaviour is correct
+        assertEquals(3, inbox.getMessageCount());
+        assertEquals(3, inbox.getMessages().length);
+    }
 }
