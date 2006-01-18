@@ -5,6 +5,8 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.Logger;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.commons.io.FileUtils;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
@@ -18,6 +20,10 @@ public class MaildirStoreTestCase extends TestCase {
     MaildirTestHelper helper = null;
 
     protected void setUp() throws Exception {
+        if (!Logger.getRootLogger().getAllAppenders().hasMoreElements()) {
+            BasicConfigurator.resetConfiguration();
+            BasicConfigurator.configure();
+        }
         helper = new MaildirTestHelper();
     }
 
@@ -140,5 +146,34 @@ public class MaildirStoreTestCase extends TestCase {
         m.setSubject("hello world");
         m.saveChanges();
         return m;
+    }
+
+    public void testQuotaChangeAfterExpunge() throws Exception {
+        File maildir = new File("maildir");
+        FileUtils.deleteDirectory(maildir);
+        maildir.mkdirs();
+        assertTrue(maildir.exists());
+        File n = new File(maildir, "new");
+        File c = new File(maildir, "cur");
+        File t = new File(maildir, "tmp");
+        n.mkdirs();
+        c.mkdirs();
+        t.mkdirs();
+
+        FileUtils.writeStringToFile(new File(c, "1111.message1.eml"), "From: hello1\nSubject: subject1\n\nworld1\n", "UTF-8");
+        Thread.sleep(1000);
+        FileUtils.writeStringToFile(new File(c, "2222.message2.eml"), "From: hello2\nSubject: subject2\n\nworld2\n", "UTF-8");
+
+        Properties props = new Properties();
+        props.setProperty("mail.store.maildir.quota.size", "1000");
+        MaildirStore store = new MaildirStore(Session.getInstance(props), new URLName("maildir:maildir"));
+        Folder inbox = store.getFolder("INBOX");
+        inbox.open(Folder.READ_WRITE);
+
+        long before = store.getQuota("")[0].getResourceUsage("STORAGE");
+        inbox.getMessage(1).setFlag(Flags.Flag.DELETED, true);
+        inbox.expunge();
+        long after = store.getQuota("")[0].getResourceUsage("STORAGE");
+        assertTrue(after < before);
     }
 }
