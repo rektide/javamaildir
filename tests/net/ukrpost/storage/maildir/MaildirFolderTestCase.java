@@ -494,6 +494,40 @@ public class MaildirFolderTestCase extends TestCase {
     }
 
     public void testGetMessages() throws Exception {
+        File maildir = createMaildir();
+        deliverCur(maildir, "From: hello1\nSubject: subject1\n\nworld1\n");
+        Thread.sleep(1000);
+        deliverCur(maildir, "From: hello2\nSubject: subject2\n\nworld2\n");
+
+        MaildirStore store = new MaildirStore(Session.getInstance(new Properties()), new URLName("maildir:maildir"));
+        Folder inbox = store.getFolder("INBOX");
+        inbox.open(Folder.READ_WRITE);
+        MimeMessage newMessage = new MimeMessage(null, new ByteArrayInputStream("From: hello3\nSubject: subject3\n\nworld3\n".getBytes()));
+        newMessage.setFlag(Flags.Flag.RECENT, true);
+        assertEquals(2, inbox.getMessages().length);
+        Thread.sleep(1000);
+
+        deliverCur(maildir, "From: hello3\nSubject: subject3\n\nworld3\n");
+        //todo: for now update to messages array is only done after call to get*MessageCount(), decide whether this behaviour is correct
+        assertEquals(3, inbox.getMessageCount());
+        assertEquals(3, inbox.getMessages().length);
+    }
+
+    public void testDelete() throws Exception {
+        File maildir = createMaildir();
+        File helloDir = createFolder(maildir, "Hello");
+        deliver(helloDir, "From: hello1\nSubject: subject1\n\nworld1\n");
+
+        MaildirStore store = new MaildirStore(Session.getInstance(new Properties()), new URLName("maildir:maildir"));
+        Folder hello = store.getFolder("Hello");
+        hello.open(Folder.READ_WRITE);
+        assertEquals(1, hello.getMessageCount());
+        hello.close(true);
+        hello.delete(true);
+        assertFalse(helloDir.exists());
+    }
+
+    public static File createMaildir() throws IOException {
         File maildir = new File("maildir");
         FileUtils.deleteDirectory(maildir);
         maildir.mkdirs();
@@ -504,22 +538,45 @@ public class MaildirFolderTestCase extends TestCase {
         n.mkdirs();
         c.mkdirs();
         t.mkdirs();
+        return maildir;
+    }
 
-        FileUtils.writeStringToFile(new File(c, "1111.message1.eml"), "From: hello1\nSubject: subject1\n\nworld1\n", "UTF-8");
-        Thread.sleep(1000);
-        FileUtils.writeStringToFile(new File(c, "2222.message2.eml"), "From: hello2\nSubject: subject2\n\nworld2\n", "UTF-8");
+    public static File createFolder(File maildir, String folderName) {
+        File dir = new File(maildir, "." + folderName);
+        dir.mkdirs();
+        assertTrue(dir.exists() && dir.isDirectory());
+        File n = new File(dir, "new");
+        File c = new File(dir, "cur");
+        File t = new File(dir, "tmp");
+        n.mkdirs();
+        c.mkdirs();
+        t.mkdirs();
+        return dir;
+    }
 
-        MaildirStore store = new MaildirStore(Session.getInstance(new Properties()), new URLName("maildir:maildir"));
-        Folder inbox = store.getFolder("INBOX");
-        inbox.open(Folder.READ_WRITE);
-        MimeMessage newMessage = new MimeMessage(null, new ByteArrayInputStream("From: hello3\nSubject: subject3\n\nworld3\n".getBytes()));
-        newMessage.setFlag(Flags.Flag.RECENT, true);
-        assertEquals(2, inbox.getMessages().length);
-        Thread.sleep(1000);
+    public static void deliver(File maildir, String messageSource) throws IOException {
+        File n = new File(maildir, "new");
+        assertTrue(n.exists() && n.isDirectory());
+        StringBuilder filename = new StringBuilder();
+        long now = System.currentTimeMillis();
+        filename.append(now / 1000).append('.');
+        filename.append(now % 1000).append('.');
+        filename.append("localhost");
 
-        FileUtils.writeStringToFile(new File(c, "3333.message3.eml"), "From: hello3\nSubject: subject3\n\nworld3\n", "UTF-8");
-        //todo: for now update to messages array is only done after call to get*MessageCount(), decide whether this behaviour is correct
-        assertEquals(3, inbox.getMessageCount());
-        assertEquals(3, inbox.getMessages().length);
+        File file = new File(n, filename.toString());
+        FileUtils.writeStringToFile(file, messageSource, "UTF-8");
+    }
+
+    public static void deliverCur(File maildir, String messageSource) throws IOException {
+        File c = new File(maildir, "cur");
+        assertTrue(c.exists() && c.isDirectory());
+        StringBuilder filename = new StringBuilder();
+        long now = System.currentTimeMillis();
+        filename.append(now / 1000).append('.');
+        filename.append(now % 1000).append('.');
+        filename.append("localhost");
+
+        File file = new File(c, filename.toString());
+        FileUtils.writeStringToFile(file, messageSource, "UTF-8");
     }
 }

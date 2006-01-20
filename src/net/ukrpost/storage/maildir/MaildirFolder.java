@@ -18,10 +18,7 @@
  */
 package net.ukrpost.storage.maildir;
 
-import net.ukrpost.utils.UidsBidiMap;
-import net.ukrpost.utils.NewlineOutputStream;
-import net.ukrpost.utils.QuotaAwareOutputStream;
-import net.ukrpost.utils.QuotaExceededException;
+import net.ukrpost.utils.*;
 import org.apache.log4j.Logger;
 
 import javax.mail.*;
@@ -801,7 +798,7 @@ public class MaildirFolder extends Folder implements UIDFolder {
         // check to make sure this is a supported pattern
         if (((firstStar > -1) && (pattern.indexOf('*', firstStar + 1) > -1)) ||
                 ((firstPercent > -1) &&
-                (pattern.indexOf('%', firstPercent + 1) > -1)) ||
+                        (pattern.indexOf('%', firstPercent + 1) > -1)) ||
                 ((firstStar > -1) && (firstPercent > -1))) {
             throw new MessagingException("list pattern not supported");
         }
@@ -856,7 +853,7 @@ public class MaildirFolder extends Folder implements UIDFolder {
                 } else {
                     if ((wildcardLocation < (pattern.length() - 1)) &&
                             (!inbox.endsWith(pattern.substring(wildcardLocation +
-                            1, pattern.length() - 1)))) {
+                                    1, pattern.length() - 1)))) {
                         includeInbox = false;
                     }
                 }
@@ -1249,7 +1246,7 @@ public class MaildirFolder extends Folder implements UIDFolder {
             if (noRecurse) {
                 if (fileName.substring(wildcard,
                         fileName.length() - (pattern.length() - wildcard) +
-                        1).indexOf(getSeparator()) > -1) {
+                                1).indexOf(getSeparator()) > -1) {
                     return false;
                 }
             }
@@ -1283,27 +1280,12 @@ public class MaildirFolder extends Folder implements UIDFolder {
 
     //quick hack for recursive deletion
     private final static boolean rmdir(File d) {
-        log.debug("TRACE: rmdir(" + d + ')');
-        if (!d.exists())
-            return false;
-
-        if (d.isFile()) {
-            return d.delete();
+        try {
+            FileUtils.deleteDirectory(d);
+            return true;
+        } catch (IOException e) {
+            log.error(d + " " + e.getMessage());
         }
-
-        final File[] list = d.listFiles();
-
-        if (list.length == 0) {
-            return d.delete();
-        }
-
-        for (int i = 0; i < list.length; i++)
-            if (list[i].isDirectory()) {
-                return rmdir(list[i]);
-            } else {
-                list[i].delete();
-            }
-
         return false;
     }
 
