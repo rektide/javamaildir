@@ -1,13 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project>
-    <pomVersion>3</pomVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <artifactId>javamaildir</artifactId>
     <name>javamaildir</name>
     <groupId>javamaildir</groupId>
-    <currentVersion>0.5.2-SNAPSHOT</currentVersion>
+    <version>0.5.2-SNAPSHOT</version>
     <inceptionYear>2002</inceptionYear>
-    <package>net.ukrpost.storage.maildir</package>
-    <shortDescription>JavaMaildir</shortDescription>
+    <description>JavaMaildir</description>
+
+<!--
+  <repositories>
+    <repository>
+    <id>Java.Net</id>
+    <url>http://download.java.net/maven/2/</url>
+    </repository>
+  </repositories>
+-->
+
+  <repositories>
+    <repository>
+  	<id>java.net-public</id>
+        <name>Maven Java Net Releases</name>
+        <url>https://maven.java.net/content/repositories/releases/</url>
+    </repository>
+  </repositories>
+
     <dependencies>
         <dependency>
             <groupId>log4j</groupId>
@@ -17,22 +36,16 @@
         </dependency>
 
         <dependency>
-            <groupId>undistributable</groupId>
+            <groupId>javax.mail</groupId>
             <artifactId>mail</artifactId>
-            <version>1.3.2</version>
+            <version>1.4.7</version>
             <type>jar</type>
-            <properties>
-                <war.bundle>true</war.bundle>
-            </properties>
         </dependency>
         <dependency>
-            <groupId>undistributable</groupId>
+            <groupId>javax.activation</groupId>
             <artifactId>activation</artifactId>
-            <version>1.0.2</version>
+            <version>1.1.1</version>
             <type>jar</type>
-            <properties>
-                <war.bundle>true</war.bundle>
-            </properties>
         </dependency>
 
         <dependency>
@@ -44,7 +57,6 @@
     </dependencies>
 
     <build>
-        <nagEmailAddress>zhukov.alex@gmail.com</nagEmailAddress>
         <sourceDirectory>src</sourceDirectory>
         <resources>
             <resource>
@@ -55,20 +67,15 @@
                 </includes>
             </resource>
         </resources>
-        <unitTestSourceDirectory>tests</unitTestSourceDirectory>
-        <unitTest>
-            <resources>
-                <resource>
+        <testSourceDirectory>tests</testSourceDirectory>
+        <testResources>
+                <testResource>
                     <directory>${basedir}/tests</directory>
                     <includes>
                         <include>**/*.eml</include>
                     </includes>
-                </resource>
-            </resources>
-            <includes>
-                <include>**/*TestCase.java</include>
-            </includes>
-        </unitTest>
+                </testResource>
+        </testResources>
     </build>
 </project>
 
